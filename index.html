@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Jays 2026 — Home Game Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg-deep:#134A8E;--bg-mid:#111E33;--border:rgba(255,255,255,0.06);--text-primary:#FFFFFF;--text-secondary:#FFFFFF;--text-muted:#FFFFFF;--jay:#2563EB;--leanne:#DC2626;--geoff:#059669;--rob:#D97706;--accent:#3B82F6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(37,99,235,0.06) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 90%,rgba(220,38,38,0.04) 0%,transparent 60%);pointer-events:none}
+.app{position:relative;z-index:1}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;animation:fadeUp .5s ease}
+.login-box{text-align:center;max-width:400px;padding:40px 24px}
+.login-box .logo{font-size:52px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 20px rgba(37,99,235,0.3))}
+.login-box h1{font-family:'Playfair Display',serif;font-size:34px;font-weight:800;letter-spacing:-.03em;margin-bottom:2px;background:linear-gradient(135deg,#E2E8F4 30%,#8497B5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-box .subtitle{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:36px}
+.login-box .prompt{color:var(--text-secondary);font-size:15px;margin-bottom:20px}
+.login-btn{display:flex;align-items:center;gap:12px;width:100%;padding:15px 20px;margin-bottom:10px;border-radius:10px;border:2px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text-primary);font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .25s}
+.login-btn:hover{transform:translateY(-1px)}
+.login-btn .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.login-btn .count{margin-left:auto;opacity:.4;font-weight:400;font-size:14px}
+.login-btn[data-p="Jay"]{border-color:rgba(37,99,235,0.3)}.login-btn[data-p="Jay"]:hover{background:var(--jay);border-color:var(--jay)}
+.login-btn[data-p="Leanne"]{border-color:rgba(220,38,38,0.3)}.login-btn[data-p="Leanne"]:hover{background:var(--leanne);border-color:var(--leanne)}
+.login-btn[data-p="Geoff"]{border-color:rgba(5,150,105,0.3)}.login-btn[data-p="Geoff"]:hover{background:var(--geoff);border-color:var(--geoff)}
+.login-btn[data-p="Rob"]{border-color:rgba(217,119,6,0.3)}.login-btn[data-p="Rob"]:hover{background:var(--rob);border-color:var(--rob)}
+.header{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-left .logo{font-size:26px}
+.header-left h1{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.header-left .tag{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.user-badge{display:flex;align-items:center;gap:8px;padding:5px 14px;border-radius:8px;background:rgba(255,255,255,0.05);font-size:14px;font-weight:600}
+.user-badge .dot{width:9px;height:9px;border-radius:50%}
+.btn-sm{padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--text-secondary);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.btn-sm:hover{background:rgba(255,255,255,0.12);color:var(--text-primary);border-color:rgba(255,255,255,0.25)}
+.board-badge{background:var(--rob);color:#fff;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;animation:pulse 2s infinite}
+.stats-bar{display:flex;gap:1px;margin:20px 24px;border-radius:12px;overflow:hidden}
+.stat-block{padding:8px 12px;cursor:pointer;transition:all .25s;min-width:35px;position:relative}
+.stat-block .label{font-size:16px;opacity:.9;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.stat-block .num{font-size:12px;font-weight:600}
+.stat-block.dimmed{opacity:.25}
+.stat-block .diff{position:absolute;top:6px;right:8px;font-size:10px;font-weight:700;opacity:.8}
+.controls{display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.tab-group{display:flex;gap:3px;background:rgba(255,255,255,0.07);border-radius:8px;padding:3px;border:1px solid rgba(255,255,255,0.08)}
+.tab-btn{padding:8px 18px;border-radius:6px;border:none;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all .2s}
+.tab-btn:hover{background:rgba(255,255,255,0.08);color:var(--text-primary)}
+.tab-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(59,130,246,0.3)}
+.month-tabs{display:flex;gap:3px;flex-wrap:wrap}
+.month-btn{padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:rgba(255,255,255,0.05);color:var(--text-secondary);transition:all .2s}
+.month-btn:hover{background:rgba(255,255,255,0.1);color:var(--text-primary);border-color:rgba(255,255,255,0.2)}
+.month-btn.active{background:var(--jay);color:#fff;border-color:var(--jay);box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+.calendar{padding:0 24px 24px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:rgba(255,255,255,0.02);border-radius:12px;overflow:hidden}
+.cal-header{padding:10px 6px;text-align:center;font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;background:rgba(0,0,0,0.25)}
+.cal-day{padding:5px;background:rgba(0,0,0,0.15);min-height:88px}
+.cal-day.today{border-left:2px solid var(--accent);background:rgba(59,130,246,0.06)}
+.cal-day.empty{background:rgba(0,0,0,0.2)}
+.cal-day .day-num{font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:3px;padding-left:2px}
+.cal-day.today .day-num{color:var(--accent);font-weight:700}
+.game-chip{padding:4px 6px;border-radius:5px;margin-bottom:2px;font-size:10px;font-weight:600;line-height:1.3;color:#fff;transition:all .15s;cursor:default}
+.game-chip.mine{cursor:pointer;border:1px solid rgba(255,255,255,0.25)}
+.game-chip.mine:hover{filter:brightness(1.2);transform:scale(1.03)}
+.game-chip.dimmed{opacity:.2}
+.game-chip.on-board{opacity:.45;border:1px dashed rgba(255,255,255,0.4)}
+.game-chip .opp{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-chip .meta{opacity:.7;font-size:9px}
+.cal-hint{text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px}
+.list-view{padding:0 24px 24px;overflow-x:auto}
+.list-table{width:100%;border-collapse:collapse;font-size:13px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.list-table th{padding:10px 14px;text-align:left;font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;background:rgba(0,0,0,0.3)}
+.list-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.02)}
+.list-table tr:nth-child(even){background:rgba(0,0,0,0.08)}
+.list-table tr:nth-child(odd){background:rgba(0,0,0,0.15)}
+.assignee-pill{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;color:#fff}
+.action-btn{padding:4px 10px;border-radius:5px;border:none;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.action-btn.post{background:rgba(245,158,11,0.2);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)}
+.action-btn.post:hover{background:rgba(245,158,11,0.3)}
+.action-btn.grab{background:rgba(5,150,105,0.2);color:#10B981;border:1px solid rgba(5,150,105,0.3)}
+.action-btn.grab:hover{background:rgba(5,150,105,0.3)}
+.action-btn.unpost{background:rgba(239,68,68,0.15);color:#EF4444;border:1px solid rgba(239,68,68,0.2)}
+.action-btn.unpost:hover{background:rgba(239,68,68,0.25)}
+.swap-board{padding:0 24px 24px;max-width:760px}
+.board-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.board-title{font-size:13px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.board-card{padding:16px;border-radius:10px;margin-bottom:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;animation:fadeUp .3s ease}
+.board-card .game-info strong{color:var(--text-primary)}
+.board-card .game-info .sub{font-size:12px;color:var(--text-secondary);margin-top:3px}
+.board-card .posted-by{font-size:12px;color:var(--text-muted);margin-top:6px}
+.board-actions{display:flex;gap:8px}
+.btn-claim{padding:8px 20px;border-radius:7px;border:none;background:var(--geoff);color:#fff;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.btn-claim:hover{filter:brightness(1.15)}
+.btn-remove{padding:8px 16px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer}
+.empty-state{padding:48px;text-align:center;color:var(--text-muted);font-size:14px;line-height:1.6}
+.history-section{margin-top:28px}
+.history-card{padding:12px 16px;border-radius:8px;margin-bottom:4px;background:rgba(255,255,255,0.02);border:1px solid var(--border);font-size:13px;display:flex;justify-content:space-between;align-items:center;opacity:.5;flex-wrap:wrap;gap:6px}
+.status-tag{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;color:#fff}
+.footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);flex-wrap:wrap;gap:8px}
+.notification{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,0.5);animation:fadeIn .3s ease}
+.notification.success{background:var(--geoff)}.notification.info{background:var(--accent)}.notification.error{background:var(--leanne)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s ease}
+.modal-box{background:var(--bg-mid);border-radius:14px;padding:28px;width:420px;max-width:92vw;border:1px solid rgba(255,255,255,0.08);animation:fadeUp .3s ease}
+.modal-box h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:8px}
+.modal-box p{color:var(--text-secondary);font-size:14px;margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:10px}
+.btn-primary{flex:1;padding:12px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer}
+.btn-secondary{padding:12px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer}
+/* ── CHAT VIEW ── */
+.chat-view{padding:0 24px 24px;max-width:760px}
+.chat-messages{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:420px;overflow-y:auto;padding:4px 0}
+.chat-msg{padding:10px 14px;border-radius:10px;background:rgba(0,0,0,0.2);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.chat-msg.mine{background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25)}
+.chat-msg .msg-header{display:flex;align-items:center;gap:8px}
+.chat-msg .msg-name{font-size:13px;font-weight:700}
+.chat-msg .msg-time{font-size:11px;color:var(--text-muted)}
+.chat-msg .msg-text{font-size:14px;color:var(--text-primary);line-height:1.5}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;padding:11px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text-primary);font-size:14px;font-family:'DM Sans',sans-serif;outline:none}
+.chat-input input:focus{border-color:var(--accent)}
+.chat-input input::placeholder{color:rgba(255,255,255,0.3)}
+.chat-input button{padding:11px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.chat-input button:hover{filter:brightness(1.15)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+@media(max-width:700px){
+  .header{padding:12px 16px;gap:8px}
+  .header-left .logo{font-size:22px}
+  .header-left h1{font-size:17px}
+  .header-right{gap:6px}
+  .user-badge{padding:4px 10px;font-size:13px}
+  .btn-sm{padding:6px 12px;font-size:11px}
+  .board-badge{font-size:11px;padding:2px 9px}
+  .stats-bar{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:12px 16px;border-radius:10px}
+  .stat-block{padding:12px 12px;border-radius:0}
+  .stat-block .num{font-size:20px}
+  .stat-block .label{font-size:14px}
+  .controls{padding:0 16px;gap:8px;margin-bottom:12px}
+  .tab-group{width:100%;justify-content:stretch}
+  .tab-btn{flex:1;padding:9px 8px;font-size:12px;text-align:center}
+  .month-tabs{width:100%;justify-content:space-between}
+  .month-btn{flex:1;text-align:center;padding:8px 4px;font-size:11px}
+  .filter-group{width:100%;display:flex;justify-content:flex-end}
+  .calendar{padding:0 16px 16px}
+  .cal-grid{display:none}
+  .cal-mobile{display:block}
+  .cal-m-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;text-align:center}
+  .cal-m-hdr{padding:6px 0;font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .cal-m-cell{padding:6px 2px 8px;min-height:52px;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;cursor:pointer}
+  .cal-m-cell.empty{cursor:default}
+  .cal-m-cell.today .cal-m-num{background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;line-height:28px;margin:0 auto}
+  .cal-m-cell.selected{background:rgba(255,255,255,0.05);border-radius:8px}
+  .cal-m-num{font-size:15px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+  .cal-m-cell.empty .cal-m-num{color:transparent}
+  .cal-m-dots{display:flex;justify-content:center;gap:3px;flex-wrap:wrap}
+  .cal-m-dot{width:20px;height:6px;border-radius:2px}
+  .cal-m-detail{margin-top:12px;display:flex;flex-direction:column;gap:2px}
+  .cal-m-detail-hdr{font-size:12px;color:var(--text-muted);font-weight:600;padding:8px 0 4px;border-bottom:1px solid var(--border)}
+  .cal-m-game{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.03)}
+  .cal-m-game.mine{cursor:pointer}
+  .cal-m-game.mine:active{background:rgba(255,255,255,0.05);border-radius:6px}
+  .cal-m-game.dimmed{opacity:.2}
+  .cal-m-game.on-board{opacity:.5}
+  .cal-m-game .mg-color{width:6px;height:32px;border-radius:3px;flex-shrink:0}
+  .cal-m-game .mg-info{flex:1}
+  .cal-m-game .mg-opp{font-size:15px;font-weight:600;color:#fff}
+  .cal-m-game .mg-meta{font-size:12px;color:var(--text-secondary);margin-top:1px}
+  .cal-m-game .mg-time{font-size:13px;color:var(--text-muted);white-space:nowrap}
+  .cal-m-nosel{padding:20px;text-align:center;color:var(--text-muted);font-size:13px}
+  .list-view{padding:0 16px 16px}
+  .list-table{display:none}
+  .list-cards{display:flex;flex-direction:column;gap:6px}
+  .list-card{background:rgba(0,0,0,0.15);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border)}
+  .list-card.on-board{opacity:.6}
+  .list-card .lc-main{flex:1}
+  .list-card .lc-opp{font-size:15px;font-weight:700}
+  .list-card .lc-date{font-size:12px;color:var(--text-secondary);margin-top:2px}
+  .list-card .lc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .list-card .assignee-pill{font-size:12px}
+  .list-card .action-btn{font-size:12px;padding:6px 12px}
+  .swap-board{padding:0 16px 16px;max-width:100%}
+  .board-card{padding:14px;flex-direction:column;align-items:stretch;gap:10px}
+  .board-actions{justify-content:stretch}
+  .btn-claim{flex:1;text-align:center;padding:10px}
+  .btn-remove{flex:1;text-align:center;padding:10px}
+  .chat-view{padding:0 16px 16px;max-width:100%}
+  .chat-messages{max-height:340px}
+  .chat-input button{padding:11px 14px;font-size:13px}
+  .modal-box{padding:22px;width:95vw}
+  .modal-box h3{font-size:18px}
+  .footer{padding:10px 16px;font-size:10px}
+  .cal-hint{font-size:10px;margin-top:8px}
+}
+@media(min-width:701px){
+  .cal-mobile{display:none !important}
+  .list-cards{display:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwYpNiAvErqSdFDLbN96o4KpO0lNBJjveHNNqLutvGg6bf53jA4aDDNfRmjwbZT4-9/exec';
+
+const INITIAL_GAMES = [
+{id:1,date:"2026-03-27",time:"07:07 PM",opp:"Athletics",who:"Jay"},
+{id:2,date:"2026-03-28",time:"03:07 PM",opp:"Athletics",who:"Rob"},
+{id:3,date:"2026-03-29",time:"01:37 PM",opp:"Athletics",who:"Geoff"},
+{id:4,date:"2026-03-30",time:"07:07 PM",opp:"Rockies",who:"Leanne"},
+{id:5,date:"2026-03-31",time:"07:07 PM",opp:"Rockies",who:"Rob"},
+{id:6,date:"2026-04-01",time:"01:07 PM",opp:"Rockies",who:"Jay"},
+{id:7,date:"2026-04-06",time:"07:07 PM",opp:"Dodgers",who:"Leanne"},
+{id:8,date:"2026-04-07",time:"07:07 PM",opp:"Dodgers",who:"Geoff"},
+{id:9,date:"2026-04-08",time:"03:07 PM",opp:"Dodgers",who:"Rob"},
+{id:10,date:"2026-04-10",time:"07:07 PM",opp:"Twins",who:"Leanne"},
+{id:11,date:"2026-04-11",time:"03:07 PM",opp:"Twins",who:"Rob"},
+{id:12,date:"2026-04-12",time:"01:37 PM",opp:"Twins",who:"Jay"},
+{id:13,date:"2026-04-24",time:"07:07 PM",opp:"Guardians",who:"Leanne"},
+{id:14,date:"2026-04-25",time:"03:07 PM",opp:"Guardians",who:"Rob"},
+{id:15,date:"2026-04-26",time:"01:37 PM",opp:"Guardians",who:"Geoff"},
+{id:16,date:"2026-04-27",time:"07:07 PM",opp:"Red Sox",who:"Jay"},
+{id:17,date:"2026-04-28",time:"07:07 PM",opp:"Red Sox",who:"Rob"},
+{id:18,date:"2026-04-29",time:"03:07 PM",opp:"Red Sox",who:"Geoff"},
+{id:19,date:"2026-05-08",time:"07:07 PM",opp:"Angels",who:"Leanne"},
+{id:20,date:"2026-05-09",time:"03:07 PM",opp:"Angels",who:"Rob"},
+{id:21,date:"2026-05-10",time:"01:37 PM",opp:"Angels",who:"Geoff"},
+{id:22,date:"2026-05-11",time:"07:07 PM",opp:"Rays",who:"Rob"},
+{id:23,date:"2026-05-12",time:"07:07 PM",opp:"Rays",who:"Geoff"},
+{id:24,date:"2026-05-13",time:"07:07 PM",opp:"Rays",who:"Leanne"},
+{id:25,date:"2026-05-22",time:"07:07 PM",opp:"Pirates",who:"Jay"},
+{id:26,date:"2026-05-23",time:"03:07 PM",opp:"Pirates",who:"Leanne"},
+{id:27,date:"2026-05-24",time:"12:15 PM",opp:"Pirates",who:"Jay"},
+{id:28,date:"2026-05-25",time:"07:07 PM",opp:"Marlins",who:"Rob"},
+{id:29,date:"2026-05-26",time:"07:07 PM",opp:"Marlins",who:"Jay"},
+{id:30,date:"2026-05-27",time:"01:07 PM",opp:"Marlins",who:"Geoff"},
+{id:31,date:"2026-06-05",time:"07:07 PM",opp:"Orioles",who:"Jay"},
+{id:32,date:"2026-06-06",time:"03:07 PM",opp:"Orioles",who:"Geoff"},
+{id:33,date:"2026-06-07",time:"01:37 PM",opp:"Orioles",who:"Jay"},
+{id:34,date:"2026-06-08",time:"07:07 PM",opp:"Phillies",who:"Rob"},
+{id:35,date:"2026-06-09",time:"07:07 PM",opp:"Phillies",who:"Geoff"},
+{id:36,date:"2026-06-10",time:"07:07 PM",opp:"Phillies",who:"Leanne"},
+{id:37,date:"2026-06-12",time:"07:37 PM",opp:"Yankees",who:"Geoff"},
+{id:38,date:"2026-06-13",time:"03:07 PM",opp:"Yankees",who:"Rob"},
+{id:39,date:"2026-06-14",time:"01:37 PM",opp:"Yankees",who:"Jay"},
+{id:40,date:"2026-06-22",time:"07:07 PM",opp:"Astros",who:"Leanne"},
+{id:41,date:"2026-06-23",time:"07:07 PM",opp:"Astros",who:"Jay"},
+{id:42,date:"2026-06-24",time:"07:07 PM",opp:"Astros",who:"Geoff"},
+{id:43,date:"2026-06-25",time:"07:07 PM",opp:"Rangers",who:"Jay"},
+{id:44,date:"2026-06-26",time:"07:07 PM",opp:"Rangers",who:"Geoff"},
+{id:45,date:"2026-06-27",time:"03:07 PM",opp:"Rangers",who:"Leanne"},
+{id:46,date:"2026-06-28",time:"01:37 PM",opp:"Rangers",who:"Rob"},
+{id:47,date:"2026-06-29",time:"07:07 PM",opp:"Mets",who:"Leanne"},
+{id:48,date:"2026-06-30",time:"07:07 PM",opp:"Mets",who:"Rob"},
+{id:49,date:"2026-07-01",time:"03:07 PM",opp:"Mets",who:"Jay"},
+{id:50,date:"2026-07-17",time:"07:07 PM",opp:"White Sox",who:"Geoff"},
+{id:51,date:"2026-07-18",time:"03:07 PM",opp:"White Sox",who:"Leanne"},
+{id:52,date:"2026-07-19",time:"12:15 PM",opp:"White Sox",who:"Geoff"},
+{id:53,date:"2026-07-20",time:"07:07 PM",opp:"Rays",who:"Rob"},
+{id:54,date:"2026-07-21",time:"07:07 PM",opp:"Rays",who:"Jay"},
+{id:55,date:"2026-07-22",time:"07:07 PM",opp:"Rays",who:"Leanne"},
+{id:56,date:"2026-07-23",time:"03:07 PM",opp:"Rays",who:"Rob"},
+{id:57,date:"2026-07-31",time:"07:07 PM",opp:"Cardinals",who:"Leanne"},
+{id:58,date:"2026-08-01",time:"03:07 PM",opp:"Cardinals",who:"Rob"},
+{id:59,date:"2026-08-02",time:"01:37 PM",opp:"Cardinals",who:"Jay"},
+{id:60,date:"2026-08-10",time:"07:07 PM",opp:"Red Sox",who:"Geoff"},
+{id:61,date:"2026-08-11",time:"07:07 PM",opp:"Red Sox",who:"Jay"},
+{id:62,date:"2026-08-12",time:"07:07 PM",opp:"Red Sox",who:"Rob"},
+{id:63,date:"2026-08-13",time:"03:07 PM",opp:"Red Sox",who:"Leanne"},
+{id:64,date:"2026-08-14",time:"07:07 PM",opp:"Yankees",who:"Rob"},
+{id:65,date:"2026-08-15",time:"03:07 PM",opp:"Yankees",who:"Leanne"},
+{id:66,date:"2026-08-16",time:"01:37 PM",opp:"Yankees",who:"Jay"},
+{id:67,date:"2026-08-25",time:"07:07 PM",opp:"Royals",who:"Leanne"},
+{id:68,date:"2026-08-26",time:"07:07 PM",opp:"Royals",who:"Geoff"},
+{id:69,date:"2026-08-27",time:"07:07 PM",opp:"Royals",who:"Jay"},
+{id:70,date:"2026-08-28",time:"07:07 PM",opp:"Mariners",who:"Geoff"},
+{id:71,date:"2026-08-29",time:"03:07 PM",opp:"Mariners",who:"Leanne"},
+{id:72,date:"2026-08-30",time:"01:37 PM",opp:"Mariners",who:"Geoff"},
+{id:73,date:"2026-09-11",time:"07:07 PM",opp:"Orioles",who:"Jay"},
+{id:74,date:"2026-09-12",time:"03:07 PM",opp:"Orioles",who:"Leanne"},
+{id:75,date:"2026-09-13",time:"01:37 PM",opp:"Orioles",who:"Rob"},
+{id:76,date:"2026-09-14",time:"07:07 PM",opp:"Tigers",who:"Geoff"},
+{id:77,date:"2026-09-15",time:"07:07 PM",opp:"Tigers",who:"Leanne"},
+{id:78,date:"2026-09-16",time:"03:07 PM",opp:"Tigers",who:"Geoff"},
+{id:79,date:"2026-09-25",time:"07:07 PM",opp:"Reds",who:"Rob"},
+{id:80,date:"2026-09-26",time:"03:07 PM",opp:"Reds",who:"Jay"},
+{id:81,date:"2026-09-27",time:"03:07 PM",opp:"Reds",who:"Rob"}
+];
+
+const PEOPLE=['Jay','Leanne','Geoff','Rob'];
+const PC={Jay:'var(--jay)',Leanne:'var(--leanne)',Geoff:'var(--geoff)',Rob:'var(--rob)'};
+const MONTHS=[{k:'2026-03',l:'March'},{k:'2026-04',l:'April'},{k:'2026-05',l:'May'},{k:'2026-06',l:'June'},{k:'2026-07',l:'July'},{k:'2026-08',l:'August'},{k:'2026-09',l:'September'}];
+const DAYNAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function freshGames(){
+  return INITIAL_GAMES.map(g=>({id:g.id,date:g.date,time:g.time,opp:g.opp,who:g.who,board:false,poster:''}));
+}
+
+// STATE
+let S={
+  user:null,
+  games:freshGames(),
+  history:[],
+  messages:[],
+  view:'calendar',
+  filter:'all',
+  month:'2026-03',
+  mday:null,
+  notif:null,
+  confirm:null,
+  lastSync:null,
+  syncing:false
+};
+
+// ═══════════════════════════════════════════════════════
+// SYNC
+// ═══════════════════════════════════════════════════════
+
+function jsonp(params){
+  return new Promise(resolve=>{
+    const cb='_j'+Date.now()+(Math.random()*9999|0);
+    const s=document.createElement('script');
+    const t=setTimeout(()=>{resolve(null);delete window[cb];try{s.remove();}catch(e){}},20000);
+    window[cb]=function(d){clearTimeout(t);resolve(d);delete window[cb];try{s.remove();}catch(e){}};
+    s.onerror=()=>{clearTimeout(t);resolve(null);delete window[cb];try{s.remove();}catch(e){}};
+    const qs=Object.keys(params).map(k=>k+'='+encodeURIComponent(params[k])).join('&');
+    s.src=APPS_SCRIPT_URL+'?callback='+cb+'&'+qs;
+    document.body.appendChild(s);
+  });
+}
+
+async function cloudRead(){
+  if(!APPS_SCRIPT_URL)return null;
+  return await jsonp({action:'getData'});
+}
+
+async function cloudWrite(){
+  if(!APPS_SCRIPT_URL){saveLocal();return false;}
+  saveLocal();
+
+  const json=JSON.stringify({games:S.games,history:S.history,messages:S.messages});
+  const maxChunk=800;
+  const chunks=[];
+  for(let i=0;i<json.length;i+=maxChunk){
+    chunks.push(json.substring(i,i+maxChunk));
+  }
+
+  if(chunks.length===1){
+    const r=await jsonp({action:'saveData',payload:json});
+    if(r&&r.success){S.lastSync=new Date();return true;}
+    return false;
+  }
+
+  for(let i=0;i<chunks.length;i++){
+    const r=await jsonp({action:'saveChunk',chunk:chunks[i],index:String(i),total:String(chunks.length)});
+    if(!r||!r.success){console.error('Chunk '+i+' failed:',r);return false;}
+  }
+  S.lastSync=new Date();
+  return true;
+}
+
+async function pullCloud(){
+  S.syncing=true;render();
+  const d=await cloudRead();
+  if(d){
+    if(d.games&&d.games.length===81){
+      S.games=d.games;
+      if(d.history)S.history=d.history;
+      if(d.messages)S.messages=d.messages;
+    } else {
+      await cloudWrite();
+    }
+    S.lastSync=new Date();
+    saveLocal();
+  }
+  S.syncing=false;render();
+}
+
+function saveLocal(){
+  try{
+    localStorage.setItem('j26g',JSON.stringify(S.games));
+    localStorage.setItem('j26h',JSON.stringify(S.history));
+    localStorage.setItem('j26m',JSON.stringify(S.messages));
+  }catch(e){}
+}
+
+function loadLocal(){
+  try{
+    const g=localStorage.getItem('j26g');
+    const h=localStorage.getItem('j26h');
+    const m=localStorage.getItem('j26m');
+    if(g){const parsed=JSON.parse(g);if(parsed.length===81)S.games=parsed;}
+    if(h)S.history=JSON.parse(h);
+    if(m)S.messages=JSON.parse(m);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function fd(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function dw(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'});}
+function mi(ym){const[y,m]=ym.split('-').map(Number);return{fd:new Date(y,m-1,1).getDay(),days:new Date(y,m,0).getDate(),y,m};}
+function cts(){const c={};PEOPLE.forEach(p=>c[p]=S.games.filter(g=>g.who===p&&!g.board).length);return c;}
+function bg(){return S.games.filter(g=>g.board);}
+function today(){return new Date().toISOString().split('T')[0];}
+
+function notify(msg,type='info'){S.notif={msg,type};render();setTimeout(()=>{S.notif=null;render();},3000);}
+function showConfirm(title,msg,onYes){S.confirm={title,msg,onYes};render();}
+function closeConfirm(){S.confirm=null;render();}
+
+// ═══════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════
+function login(p){S.user=p;localStorage.setItem('j26u',p);render();}
+function logout(){S.user=null;localStorage.removeItem('j26u');render();}
+function setView(v){S.view=v;render();}
+function setMonth(m){S.month=m;S.mday=null;render();}
+function toggleFilter(p){S.filter=S.filter===p?'all':p;render();}
+function clearFilter(){S.filter='all';render();}
+function selectDay(d){S.mday=d;render();}
+
+function postToBoard(gid){
+  const g=S.games.find(x=>x.id===gid);
+  if(!g||g.who!==S.user)return;
+  showConfirm('Post to Swap Board',
+    'Post <strong>#'+g.id+' '+fd(g.date)+' vs '+g.opp+'</strong> to the swap board?<br><br>Anyone can claim it. Your game count will decrease by 1.',
+    async()=>{
+      g.board=true;g.poster=S.user;
+      closeConfirm();await cloudWrite();notify('Posted to swap board!','success');render();
+    });
+}
+
+async function unpost(gid){
+  const g=S.games.find(x=>x.id===gid);if(!g)return;
+  g.board=false;g.poster='';
+  await cloudWrite();notify('Removed from board.','info');render();
+}
+
+function claimGame(gid){
+  const g=S.games.find(x=>x.id===gid);if(!g||!g.board)return;
+  showConfirm('Claim This Game',
+    'Take <strong>#'+g.id+' '+fd(g.date)+' vs '+g.opp+'</strong> from '+(g.poster||g.who)+'?<br><br>Your game count will increase by 1.',
+    async()=>{
+      const prev=g.who;
+      S.history.push({id:Date.now(),gid:g.id,from:prev,to:S.user,desc:'#'+g.id+' '+fd(g.date)+' vs '+g.opp,ts:new Date().toISOString()});
+      g.who=S.user;g.board=false;g.poster='';
+      closeConfirm();await cloudWrite();notify('Claimed game #'+g.id+'!','success');render();
+    });
+}
+
+async function clearHistory(){S.history=[];await cloudWrite();render();}
+
+function resetAll(){
+  showConfirm('Reset Everything','Restore all original assignments and clear swap history?',async()=>{
+    S.games=freshGames();S.history=[];
+    closeConfirm();await cloudWrite();notify('Reset to original.','info');render();
+  });
+}
+
+async function manualSync(){
+  await pullCloud();
+  if(S.lastSync)notify('Synced! ('+S.games.length+' games)','success');
+  else notify('Could not reach Google Sheets.','error');
+}
+
+// ═══════════════════════════════════════════════════════
+// CHAT ACTIONS
+// ═══════════════════════════════════════════════════════
+async function sendMessage(text){
+  if(!text||!text.trim())return;
+  S.messages.push({
+    id:Date.now(),
+    user:S.user,
+    text:text.trim(),
+    ts:new Date().toISOString()
+  });
+  await cloudWrite();
+  render();
+  const cb=document.getElementById('chatBox');
+  if(cb)cb.scrollTop=cb.scrollHeight;
+}
+
+function chatSend(){
+  const inp=document.getElementById('chatIn');
+  if(!inp)return;
+  const val=inp.value;
+  inp.value='';
+  sendMessage(val);
+}
+
+function chatKeydown(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    chatSend();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render(){
+  const app=document.getElementById('app');
+  const c=cts();const board=bg();let h='';
+
+  if(S.notif)h+='<div class="notification '+S.notif.type+'">'+S.notif.msg+'</div>';
+
+  if(S.confirm){
+    h+='<div class="modal-overlay" onclick="closeConfirm()"><div class="modal-box" onclick="event.stopPropagation()"><h3>'+S.confirm.title+'</h3><p>'+S.confirm.msg+'</p><div class="modal-actions"><button class="btn-primary" onclick="S.confirm.onYes()">Yes, do it</button><button class="btn-secondary" onclick="closeConfirm()">Cancel</button></div></div></div>';
+  }
+
+  // LOGIN
+  if(!S.user){
+    app.innerHTML=h+'<div class="login-screen"><div class="login-box"><span class="logo">&#x26BE;</span><h1>Blue Jays 2026</h1><p class="subtitle">Home Game Dashboard</p><p class="prompt">Who are you?</p>'+PEOPLE.map(p=>'<button class="login-btn" data-p="'+p+'" onclick="login(\''+p+'\')"><span class="dot" style="background:'+PC[p]+'"></span>'+p+'<span class="count">'+c[p]+' games</span></button>').join('')+'<p style="color:var(--text-muted);font-size:11px;margin-top:24px">'+(APPS_SCRIPT_URL?'&#x2601;&#xFE0F; Syncing via Google Sheets':'&#x1F4BE; Local mode')+'</p></div></div>';
+    return;
+  }
+
+  const filtered=S.filter==='all'?S.games:S.games.filter(g=>g.who===S.filter);
+  const bc=board.length;
+  const mc=S.messages.length;
+
+  // HEADER
+  h+='<div class="header"><div class="header-left"><span class="logo">&#x26BE;</span><div><h1>Blue Jays 2026</h1><span class="tag">Home Schedule</span></div></div><div class="header-right">'+(bc>0?'<span class="board-badge">'+bc+' on board</span>':'')+'<div class="user-badge"><span class="dot" style="background:'+PC[S.user]+'"></span>'+S.user+'</div><button class="btn-sm" onclick="manualSync()">'+(S.syncing?'&#x23F3;':'&#x21BB;')+' Sync</button><button class="btn-sm" onclick="logout()">Switch</button></div></div>';
+
+  // STATS
+  const orig={};PEOPLE.forEach(p=>orig[p]=INITIAL_GAMES.filter(g=>g.who===p).length);
+  h+='<div class="stats-bar">'+PEOPLE.map(p=>{
+    const diff=c[p]-orig[p];const ds=diff>0?'+'+diff:diff<0?''+diff:'';
+    return '<div class="stat-block '+(S.filter!=='all'&&S.filter!==p?'dimmed':'')+'" style="background:'+PC[p]+';flex:'+(c[p]||1)+'" onclick="toggleFilter(\''+p+'\')"><div class="label">'+p+'</div><div class="num">'+c[p]+'</div>'+(ds?'<div class="diff">'+ds+'</div>':'')+'</div>';
+  }).join('')+'</div>';
+
+  // CONTROLS
+  const mt=S.view==='calendar'?'<div class="month-tabs">'+MONTHS.map(m=>'<button class="month-btn '+(S.month===m.k?'active':'')+'" onclick="setMonth(\''+m.k+'\')">'+m.l.slice(0,3)+'</button>').join('')+'</div>':'';
+  h+='<div class="controls"><div class="tab-group">';
+  [
+    ['calendar','Calendar'],
+    ['list','List'],
+    ['board','Swap Board'+(bc>0?' ('+bc+')':'')],
+    ['chat','Chat'+(mc>0?' ('+mc+')':'')]
+  ].forEach(function(pair){
+    h+='<button class="tab-btn '+(S.view===pair[0]?'active':'')+'" onclick="setView(\''+pair[0]+'\')">'+pair[1]+'</button>';
+  });
+  h+='</div>'+mt+'<div class="filter-group"><button class="btn-sm" style="'+(S.filter==='all'?'background:var(--accent);color:#fff;border-color:var(--accent)':'')+'" onclick="clearFilter()">All</button></div></div>';
+
+  // CALENDAR
+  if(S.view==='calendar'){
+    const inf=mi(S.month);const mg=filtered.filter(g=>g.date.startsWith(S.month));
+    const bd={};mg.forEach(g=>{const d=parseInt(g.date.split('-')[2]);if(!bd[d])bd[d]=[];bd[d].push(g);});
+    const td=today();
+
+    let cells=DAYNAMES.map(d=>'<div class="cal-header">'+d+'</div>').join('');
+    for(let i=0;i<inf.fd;i++)cells+='<div class="cal-day empty"></div>';
+    for(let d=1;d<=inf.days;d++){
+      const ds=inf.y+'-'+String(inf.m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const it=ds===td;const dg=bd[d]||[];
+      const chips=dg.map(g=>{
+        const mine=g.who===S.user&&!g.board;const dim=S.filter!=='all'&&g.who!==S.filter;const ob=g.board;
+        return '<div class="game-chip '+(mine?'mine':'')+' '+(dim?'dimmed':'')+' '+(ob?'on-board':'')+'" style="background:'+PC[g.who]+'" '+(mine?'onclick="postToBoard('+g.id+')"':'')+'><div class="opp">vs '+g.opp+'</div><div class="meta">'+g.time+' \xb7 '+g.who+(ob?' \xb7 \uD83D\uDD04':'')+'</div></div>';
+      }).join('');
+      cells+='<div class="cal-day '+(it?'today':'')+'"><div class="day-num">'+d+'</div>'+chips+'</div>';
+    }
+
+    let mGrid=DAYNAMES.map(d=>'<div class="cal-m-hdr">'+d.charAt(0)+'</div>').join('');
+    for(let i=0;i<inf.fd;i++)mGrid+='<div class="cal-m-cell empty"><div class="cal-m-num">&nbsp;</div></div>';
+
+    if(!S.mday){
+      for(let d=1;d<=inf.days;d++){if(bd[d]&&bd[d].length>0){S.mday=d;break;}}
+    }
+
+    for(let d=1;d<=inf.days;d++){
+      const ds=inf.y+'-'+String(inf.m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const it=ds===td;
+      const sel=S.mday===d;
+      const dg=bd[d]||[];
+      const dots=dg.map(g=>'<div class="cal-m-dot" style="background:'+PC[g.who]+'"></div>').join('');
+      mGrid+='<div class="cal-m-cell '+(it?'today':'')+' '+(sel?'selected':'')+'" onclick="selectDay('+d+')"><div class="cal-m-num">'+d+'</div><div class="cal-m-dots">'+dots+'</div></div>';
+    }
+
+    let mDetail='';
+    const selGames=bd[S.mday]||[];
+    if(S.mday&&selGames.length>0){
+      const selDs=inf.y+'-'+String(inf.m).padStart(2,'0')+'-'+String(S.mday).padStart(2,'0');
+      const selDate=new Date(selDs+'T12:00:00');
+      const hdr=selDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      mDetail+='<div class="cal-m-detail-hdr">'+hdr+'</div>';
+      mDetail+=selGames.map(g=>{
+        const mine=g.who===S.user&&!g.board;const dim=S.filter!=='all'&&g.who!==S.filter;const ob=g.board;
+        return '<div class="cal-m-game '+(mine?'mine':'')+' '+(dim?'dimmed':'')+' '+(ob?'on-board':'')+'" '+(mine?'onclick="postToBoard('+g.id+')"':'')+'><div class="mg-color" style="background:'+PC[g.who]+'"></div><div class="mg-info"><div class="mg-opp">vs '+g.opp+(ob?' \uD83D\uDD04':'')+'</div><div class="mg-meta">'+g.who+'</div></div><div class="mg-time">'+g.time+'</div></div>';
+      }).join('');
+    } else if(S.mday){
+      mDetail='<div class="cal-m-nosel">No games on this day</div>';
+    } else {
+      mDetail='<div class="cal-m-nosel">No games this month</div>';
+    }
+
+    h+='<div class="calendar"><div class="cal-grid">'+cells+'</div><div class="cal-mobile"><div class="cal-m-grid">'+mGrid+'</div><div class="cal-m-detail">'+mDetail+'</div></div><p class="cal-hint">Tap your games to post them to the swap board</p></div>';
+  }
+
+  // LIST
+  if(S.view==='list'){
+    const rows=filtered.map(g=>{
+      const mine=g.who===S.user&&!g.board;const ob=g.board;
+      let ab='';
+      if(mine)ab='<button class="action-btn post" onclick="postToBoard('+g.id+')">Post</button>';
+      else if(ob&&g.who!==S.user)ab='<button class="action-btn grab" onclick="claimGame('+g.id+')">Claim</button>';
+      else if(ob&&(g.poster===S.user||g.who===S.user))ab='<button class="action-btn unpost" onclick="unpost('+g.id+')">Remove</button>';
+      return '<tr style="'+(ob?'opacity:0.6':'')+'"><td style="color:var(--text-muted);font-weight:500">'+g.id+'</td><td style="font-weight:500">'+fd(g.date)+'</td><td style="color:var(--text-secondary)">'+dw(g.date)+'</td><td style="color:var(--text-secondary)">'+g.time+'</td><td style="font-weight:600">'+g.opp+'</td><td><span class="assignee-pill" style="background:'+PC[g.who]+'">'+g.who+'</span>'+(ob?' <span style="font-size:10px;color:var(--rob)">\uD83D\uDD04</span>':'')+'</td><td>'+ab+'</td></tr>';
+    }).join('');
+
+    const cards=filtered.map(g=>{
+      const mine=g.who===S.user&&!g.board;const ob=g.board;
+      let ab='';
+      if(mine)ab='<button class="action-btn post" onclick="postToBoard('+g.id+')">Post</button>';
+      else if(ob&&g.who!==S.user)ab='<button class="action-btn grab" onclick="claimGame('+g.id+')">Claim</button>';
+      else if(ob&&(g.poster===S.user||g.who===S.user))ab='<button class="action-btn unpost" onclick="unpost('+g.id+')">Remove</button>';
+      return '<div class="list-card '+(ob?'on-board':'')+'"><div class="lc-main"><div class="lc-opp">vs '+g.opp+'</div><div class="lc-date">'+fd(g.date)+' \xb7 '+dw(g.date)+' \xb7 '+g.time+'</div></div><div class="lc-right"><span class="assignee-pill" style="background:'+PC[g.who]+'">'+g.who+(ob?' \uD83D\uDD04':'')+'</span>'+ab+'</div></div>';
+    }).join('');
+
+    h+='<div class="list-view"><table class="list-table"><thead><tr><th>#</th><th>Date</th><th>Day</th><th>Time</th><th>Opponent</th><th>Assigned</th><th></th></tr></thead><tbody>'+rows+'</tbody></table><div class="list-cards">'+cards+'</div></div>';
+  }
+
+  // SWAP BOARD
+  if(S.view==='board'){
+    let bh='';
+    if(board.length===0){
+      bh='<div class="empty-state">No games on the swap board right now.<br><br>To post a game, click one of your games in the Calendar or List view.</div>';
+    }else{
+      bh=board.map(g=>{
+        const canClaim=g.who!==S.user;
+        const canRemove=g.poster===S.user;
+        return '<div class="board-card"><div><div class="game-info"><strong>#'+g.id+' \u2014 '+fd(g.date)+' vs '+g.opp+'</strong><div class="sub">'+dw(g.date)+' \xb7 '+g.time+'</div></div><div class="posted-by">Posted by <span style="color:'+PC[g.poster||g.who]+';font-weight:600">'+(g.poster||g.who)+'</span></div></div><div class="board-actions">'+(canClaim?'<button class="btn-claim" onclick="claimGame('+g.id+')">Claim This Game</button>':'')+(canRemove?'<button class="btn-remove" onclick="unpost('+g.id+')">Remove</button>':'')+'</div></div>';
+      }).join('');
+    }
+
+    let hh='';
+    if(S.history.length>0){
+      hh='<div class="history-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="board-title" style="margin:0">Swap History</div><div style="display:flex;gap:8px"><button class="btn-sm" onclick="clearHistory()">Clear</button><button class="btn-sm" style="border-color:rgba(239,68,68,0.3);color:#EF4444" onclick="resetAll()">Reset All</button></div></div>'+S.history.slice().reverse().map(x=>'<div class="history-card"><div>'+x.desc+': <span style="color:'+PC[x.from]+';font-weight:600">'+x.from+'</span> \u2192 <span style="color:'+PC[x.to]+';font-weight:600">'+x.to+'</span></div><span class="status-tag" style="background:var(--geoff)">swapped</span></div>').join('')+'</div>';
+    }else{
+      hh='<div class="history-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="board-title" style="margin:0">Swap History</div><button class="btn-sm" style="border-color:rgba(239,68,68,0.3);color:#EF4444" onclick="resetAll()">Reset All</button></div><div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No swaps yet.</div></div>';
+    }
+
+    h+='<div class="swap-board"><div class="board-header"><div class="board-title">Available Games ('+board.length+')</div></div>'+bh+hh+'</div>';
+  }
+
+  // CHAT
+  if(S.view==='chat'){
+    let msgs='';
+    if(S.messages.length===0){
+      msgs='<div class="empty-state">No messages yet. Say something!</div>';
+    } else {
+      msgs=S.messages.map(function(m){
+        var mine=m.user===S.user;
+        var d=new Date(m.ts);
+        var ts=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        var escaped=m.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return '<div class="chat-msg '+(mine?'mine':'')+'"><div class="msg-header"><span class="msg-name" style="color:'+PC[m.user]+'">'+m.user+'</span><span class="msg-time">'+ts+'</span></div><div class="msg-text">'+escaped+'</div></div>';
+      }).join('');
+    }
+
+    h+='<div class="chat-view"><div class="chat-messages" id="chatBox">'+msgs+'</div><div class="chat-input"><input id="chatIn" type="text" placeholder="Type a message..." onkeydown="chatKeydown(event)"><button onclick="chatSend()">Send</button></div></div>';
+  }
+
+  // FOOTER
+  const sl=APPS_SCRIPT_URL?'\u2601\uFE0F Google Sheets'+(S.lastSync?' \xb7 Last sync: '+S.lastSync.toLocaleTimeString():''):'\uD83D\uDCBE Local mode';
+  h+='<div class="footer"><span>'+sl+'</span><span>81 home games \xb7 2026 Season</span></div>';
+
+  app.innerHTML=h;
+
+  // Auto-scroll chat to bottom after render
+  if(S.view==='chat'){
+    const cb=document.getElementById('chatBox');
+    if(cb)cb.scrollTop=cb.scrollHeight;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+(async function(){
+  const sv=localStorage.getItem('j26u');
+  if(sv&&PEOPLE.includes(sv))S.user=sv;
+  loadLocal();
+  render();
+  if(APPS_SCRIPT_URL)await pullCloud();
+})();
+</script>
+</body>
+</html>
