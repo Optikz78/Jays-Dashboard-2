@@ -121,6 +121,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .chat-input input::placeholder{color:rgba(255,255,255,0.3)}
 .chat-input button{padding:11px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
 .chat-input button:hover{filter:brightness(1.15)}
+.chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chat-title{font-size:13px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.chat-msg{position:relative}
+.msg-delete{position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(255,255,255,0.2);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;transition:color .15s}
+.msg-delete:hover{color:rgba(239,68,68,0.8)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
@@ -184,9 +189,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .board-actions{justify-content:stretch}
   .btn-claim{flex:1;text-align:center;padding:10px}
   .btn-remove{flex:1;text-align:center;padding:10px}
-  .chat-view{padding:0 16px 16px;max-width:100%}
+  .chat-view{padding:0 16px 16px;max-width:100%;width:100%;overflow:hidden}
   .chat-messages{max-height:340px}
-  .chat-input button{padding:11px 14px;font-size:13px}
+  .chat-input{width:100%}
+  .chat-input input{min-width:0}
+  .chat-input button{padding:11px 12px;font-size:13px;flex-shrink:0}
   .modal-box{padding:22px;width:95vw}
   .modal-box h3{font-size:18px}
   .footer{padding:10px 16px;font-size:10px}
@@ -496,6 +503,21 @@ function chatKeydown(e){
   }
 }
 
+async function deleteMessage(id){
+  S.messages=S.messages.filter(function(m){return m.id!==id;});
+  await cloudWrite();
+  render();
+  const cb=document.getElementById('chatBox');
+  if(cb)cb.scrollTop=cb.scrollHeight;
+}
+
+function resetChat(){
+  showConfirm('Clear Chat History','Delete all messages from the chat?',async function(){
+    S.messages=[];
+    closeConfirm();await cloudWrite();notify('Chat cleared.','info');render();
+  });
+}
+
 // ═══════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════
@@ -653,11 +675,13 @@ function render(){
         var d=new Date(m.ts);
         var ts=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
         var escaped=m.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        return '<div class="chat-msg '+(mine?'mine':'')+'"><div class="msg-header"><span class="msg-name" style="color:'+PC[m.user]+'">'+m.user+'</span><span class="msg-time">'+ts+'</span></div><div class="msg-text">'+escaped+'</div></div>';
+        var delBtn=mine?'<button class="msg-delete" onclick="deleteMessage('+m.id+')" title="Delete">&#x2715;</button>':'';
+        return '<div class="chat-msg '+(mine?'mine':'')+'"><div class="msg-header"><span class="msg-name" style="color:'+PC[m.user]+'">'+m.user+'</span><span class="msg-time">'+ts+'</span></div><div class="msg-text">'+escaped+'</div>'+delBtn+'</div>';
       }).join('');
     }
 
-    h+='<div class="chat-view"><div class="chat-messages" id="chatBox">'+msgs+'</div><div class="chat-input"><input id="chatIn" type="text" placeholder="Type a message..." onkeydown="chatKeydown(event)"><button onclick="chatSend()">Send</button></div></div>';
+    var chatHdr='<div class="chat-header"><div class="chat-title">Group Chat</div>'+(S.messages.length>0?'<button class="btn-sm" style="border-color:rgba(239,68,68,0.3);color:#EF4444" onclick="resetChat()">Clear All</button>':'')+'</div>';
+    h+='<div class="chat-view">'+chatHdr+'<div class="chat-messages" id="chatBox">'+msgs+'</div><div class="chat-input"><input id="chatIn" type="text" placeholder="Type a message..." onkeydown="chatKeydown(event)"><button onclick="chatSend()">Send</button></div></div>';
   }
 
   // FOOTER
